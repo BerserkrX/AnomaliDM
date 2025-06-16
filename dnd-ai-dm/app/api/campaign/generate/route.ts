@@ -3,7 +3,7 @@
 
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import generateCampaign from "@/lib/ai/generateCampaign"
+import { generateCampaign } from "@/lib/ai/generateCampaign"
 
 export interface CampaignParams {
   tone: string
