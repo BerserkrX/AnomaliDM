@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.3",
+    "class-variance-authority": "^0.7.1",
+    "framer-motion": "^12.12.2",
+    "lucide-react": "^0.511.0",
+    "tailwind-variants": "^1.0.0"
+  }
+}

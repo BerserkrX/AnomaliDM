@@ -1,0 +1,21 @@
+export const SKILL_TO_ABILITY: Record<string,string> = {
+   Acrobatics: 'DEX',
+   AnimalHandling: 'WIS',
+   Arcana: 'INT',
+   Athletics: 'STR',
+   Deception: 'CHA',
+   History: 'INT',
+   Insight: 'WIS',
+   Intimidation: 'CHA',
+   Investigation: 'INT',
+   Medicine: 'WIS',
+   Nature: 'INT',
+   Perception: 'WIS',
+   Performance: 'CHA',
+   Persuasion: 'CHA',
+   Religion: 'INT',
+   SleightofHand: 'DEX',
+   Stealth: 'DEX',
+   Survival: 'WIS',
+};
+export const SKILLS_LIST = Object.keys(SKILL_TO_ABILITY) as string[];
