@@ -1,60 +1,89 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 
-interface Props {
+interface AiChatPanelProps {
   campaignId: string;
   userId: string;
 }
 
-export default function AiChatPanel({ campaignId, userId }: Props) {
+export default function AiChatPanel({ campaignId, userId }: AiChatPanelProps) {
   const [messages, setMessages] = useState<string[]>([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const endOfMessagesRef = useRef<HTMLDivElement | null>(null);
 
-  const sendMessage = async (msg: string) => {
-    setMessages((prev) => [...prev, `You: ${msg}`]);
+  useEffect(() => {
+    endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-    const res = await fetch("/api/ai/respond", {
-      method: "POST",
-      body: JSON.stringify({ campaignId, userInput: msg, userId }),
-    });
+  const sendMessage = async () => {
+    if (!input.trim()) return;
 
-    const data = await res.json();
-    setMessages((prev) => [...prev, `DM: ${data.response}`]);
-    setInput("");
+    const userMessage = `You: ${input}`;
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/ai/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaignId, userInput: input, userId }),
+      });
+
+      const data = await res.json();
+      const aiResponse = `DM: ${data.response}`;
+      setMessages((prev) => [...prev, aiResponse]);
+    } catch (err) {
+      setMessages((prev) => [...prev, '❌ Error talking to DM.']);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') sendMessage();
   };
 
   return (
-    <div className="flex flex-col h-full w-full p-2 space-y-2 bg-white/80 rounded">
-      <div className="flex-1 overflow-y-auto space-y-1 text-sm">
-        {messages.map((m, i) => (
-          <div key={i} className="text-foreground">
-            {m}
+    <div className="flex flex-col h-[600px] w-full p-4 space-y-3 bg-zinc-900 text-white rounded shadow-lg overflow-hidden">
+      <div className="flex-1 overflow-y-auto pr-1 space-y-2">
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={`p-2 rounded text-sm ${
+              msg.startsWith('You:')
+                ? 'bg-zinc-700 text-green-200 self-end'
+                : 'bg-zinc-800 text-yellow-100 self-start'
+            }`}
+          >
+            {msg}
           </div>
         ))}
+        {loading && (
+          <div className="text-sm italic text-muted text-gray-400">
+            DM is thinking...
+          </div>
+        )}
+        <div ref={endOfMessagesRef} />
       </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (input.trim()) sendMessage(input.trim());
-        }}
-        className="flex space-x-2"
-      >
+      <div className="flex gap-2 pt-2">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="flex-1 p-2 rounded border bg-background text-foreground"
+          onKeyDown={handleKeyPress}
+          className="flex-1 p-2 rounded border border-zinc-600 bg-zinc-800 text-white placeholder-gray-400"
           placeholder="Ask your DM..."
         />
         <button
-          type="submit"
-          className="px-4 py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90"
+          onClick={sendMessage}
+          className="px-4 py-2 bg-yellow-500 text-black font-semibold rounded hover:bg-yellow-400"
         >
           Send
         </button>
-      </form>
+      </div>
     </div>
   );
 }

@@ -71,41 +71,8 @@ export default function CampaignRoomPage() {
     'AI': (
       <>
         <AiChatPanel campaignId={id as string} userId={user?.id} />
-        <div className="flex flex-col h-full">
-          <div className="flex-1 overflow-y-auto p-2 bg-white/80 rounded mb-2 space-y-2">
-            {/* Chat messages go here */}
-            <div className="text-foreground">AI: Welcome to the campaign. How can I assist?</div>
-            {/* You can map actual messages here */}
-          </div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const input = e.currentTarget.elements.namedItem('message') as HTMLInputElement;
-              const value = input.value.trim();
-              if (!value) return;
-              console.log('Sending message:', value);
-              input.value = '';
-              // Add logic to send to your AI backend here
-            }}
-            className="flex items-center space-x-2"
-          >
-            <input
-              type="text"
-              name="message"
-              placeholder="Type your message..."
-              className="flex-1 p-2 border rounded bg-background text-foreground"
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-            >
-              Send
-            </button>
-          </form>
-        </div>
       </>
     ),
-  
   };
   
   return (
@@ -158,7 +125,7 @@ export default function CampaignRoomPage() {
             key={activePanel}
             className={`absolute top-28 ${
                 activePanel === 'Pl.' || activePanel === 'AI' ? 'right-20' : 'left-20'
-            } bg-white bg-opacity-90 rounded shadow-lg p-4 w-64 h-64 z-50`}
+            } bg-white bg-opacity-90 rounded shadow-lg p-4 w-[600px] h-[500px] p-6 z-50`}
             initial={{
                 opacity: 0,
                 scale: 0.8,
