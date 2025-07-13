@@ -1,46 +1,33 @@
+// app/login/page.tsx
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState<string>('');
 
-  const handleLogin = async (type: 'sign-in' | 'sign-up') => {
+  const handleLogin = async () => {
     setLoading(true);
     setError('');
-
-  let data, error;
-
-if (type === 'sign-in') {
-  ({ data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  }));
-} else {
-  ({ data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  }));
-}
-
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError(error.message);
-    } else {
-      router.push('/account'); // or a dashboard
+      setLoading(false);
+      return;
     }
-
-    setLoading(false);
+    router.push('/account');
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0d1117] text-white">
-      <div className="bg-[#111827] p-8 rounded-lg w-full max-w-sm shadow-lg space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+      <div className="bg-card p-8 rounded-2xl w-full max-w-sm shadow-lg space-y-6">
         <h2 className="text-2xl font-bold text-center">Login to RealmWright</h2>
 
         <input
@@ -48,27 +35,33 @@ if (type === 'sign-in') {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 rounded bg-gray-800 text-white border border-gray-700"
+          className="w-full p-2 rounded-lg bg-muted text-muted-foreground border border-border focus:outline-none"
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 rounded bg-gray-800 text-white border border-gray-700"
+          className="w-full p-2 rounded-lg bg-muted text-muted-foreground border border-border focus:outline-none"
         />
 
-        {error && <p className="text-red-400">{error}</p>}
+        {error && <p className="text-destructive text-sm">{error}</p>}
 
-        <div className="flex gap-2">
-          <button onClick={() => handleLogin('sign-in')} className="flex-1 bg-blue-600 p-2 rounded">
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-          <button onClick={() => handleLogin('sign-up')} className="flex-1 bg-green-600 p-2 rounded">
-            {loading ? 'Creating...' : 'Register'}
-          </button>
-        </div>
+        <button
+          onClick={handleLogin}
+          disabled={loading}
+          className="w-full bg-primary text-primary-foreground py-2 rounded-lg hover:opacity-90 transition"
+        >
+          {loading ? 'Logging in…' : 'Login'}
+        </button>
+
+        <p className="text-center text-sm">
+          Don’t have an account?{' '}
+          <Link href="/register" className="text-primary hover:underline">
+            Register Here
+          </Link>
+        </p>
       </div>
     </div>
-  );
+);
 }

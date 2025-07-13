@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NavBar />
 
         {/* ── Main Content Area (all pages render here) ── */}
-        <main className="pt-16 flex-1 relative overflow-auto">
+        <main className="pt-16 flex-1 relative overflow-hidden">
           {children}
         </main>
       </body>
