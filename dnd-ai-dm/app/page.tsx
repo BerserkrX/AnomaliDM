@@ -156,7 +156,7 @@ export default function LandingPage() {
             <summary className="cursor-pointer font-medium">How does the AI generate stories?</summary>
             <p className="mt-2 text-muted-foreground">
               Our AI uses a mix of large language models and custom prompts to craft narratives based
-              on your party’s choices and campaign settings.
+              on your party&#39;s choices and campaign settings.
             </p>
           </details>
           <details className="mb-2 w-full">
