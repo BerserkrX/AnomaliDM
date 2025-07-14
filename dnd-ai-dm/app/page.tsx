@@ -169,8 +169,7 @@ export default function LandingPage() {
           <details className="mb-2 w-full">
             <summary className="cursor-pointer font-medium">What if I want to change my character?</summary>
             <p className="mt-2 text-muted-foreground">
-              No problem! You can modify your character&#39;s traits, backstory, and appearance at any time
-              during the campaign. Just let the AI know what changes you&#39;d like to make.
+              No problem! You can modify your character&#39;s traits, backstory, and appearance at any time during the campaign. Just let the AI know what changes you&#39;d like to make.
             </p>
           </details>
             <details className="mb-2 w-full">
