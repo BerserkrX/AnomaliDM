@@ -77,7 +77,7 @@ export default function LandingPage() {
             <Sparkles className="mx-auto mb-4 h-8 w-8 text-primary group-hover:scale-105 transition" />
             <h3 className="text-xl font-semibold mb-2">Play Without a DM</h3>
             <p className="text-sm text-muted-foreground">
-                If your group is missing a DM, you need a break, or you’re a forever-DM who finally wants to play, Anomali runs the game for you.
+                If your group is missing a DM, you need a break, or you&#39;re a forever-DM who finally wants to play, Anomali runs the game for you.
             </p>
           </Link>
           <Link
@@ -169,8 +169,8 @@ export default function LandingPage() {
           <details className="mb-2 w-full">
             <summary className="cursor-pointer font-medium">What if I want to change my character?</summary>
             <p className="mt-2 text-muted-foreground">
-              No problem! You can modify your character's traits, backstory, and appearance at any time
-              during the campaign. Just let the AI know what changes you'd like to make.
+              No problem! You can modify your character&#39;s traits, backstory, and appearance at any time
+              during the campaign. Just let the AI know what changes you&#39;d like to make.
             </p>
           </details>
             <details className="mb-2 w-full">
