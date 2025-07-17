@@ -12,6 +12,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toast": "^1.2.14",
     "@stripe/stripe-js": "^7.4.0",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.49.8",
     "@types/micro": "^7.3.7",
     "@types/stripe": "^8.0.416",

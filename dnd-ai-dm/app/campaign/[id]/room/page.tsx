@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import AiChatPanel from '@/components/ai/AiChatPanel';
+import io from 'socket.io-client';
 
 
 type PanelKey = 'Ch.' | 'Inv.' | 'Spell' | 'Roll' | 'Pl.' | 'AI';
@@ -40,6 +41,7 @@ export default function CampaignRoomPage() {
   };
 
   const [aiMessages, setAiMessages] = useState<string[]>([]);
+  const [userInput, setUserInput] = useState('');
 
     const handleAiSend = async (msg: string) => {
     const res = await fetch('/api/ai/respond', {
@@ -50,15 +52,42 @@ export default function CampaignRoomPage() {
     setAiMessages(prev => [...prev, data.response]);
     };
 
-  const [userInput, setUserInput] = useState('');
+  const socketRef = useRef<any>(null);
 
-  const handleSendAiMessage = async () => {
-  if (!userInput.trim()) return;
+  useEffect(() => {
+    const socket = io(process.env.NEXT_PUBLIC_MCP_URL ?? 'http://localhost:4000');
 
-  const userMsg = { sender: 'user', text: userInput.trim() };
-  setAiMessages((prev) => [...prev, userInput]);
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      console.log('✅ Connected to MCP server');
+    });
+
+    socket.on('ai-response', (data: { text: string }) => {
+      console.log('🤖 AI Response:', data.text);
+      setAiMessages((prev) => [...prev, `AI: ${data.text}`]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+
+  const handleSendAiMessage = () => {
+    if (!userInput.trim()) return;
+
+    const message = userInput.trim();
+    setAiMessages((prev) => [...prev, `You: ${message}`]);
+    socketRef.current?.emit('player-message', {
+      content: message,
+      playerId: user?.id,
+      campaignId: id,
+    });
+
     setUserInput('');
-  }
+  };
+
   
   // Move panelContent and return outside of handleSendAiMessage
   const panelContent: Record<PanelKey, React.ReactElement> = {

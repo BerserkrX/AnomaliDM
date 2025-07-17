@@ -1,42 +1,19 @@
 import OpenAI from 'openai';
+import { ChatCompletionMessageParam } from 'openai/resources/chat';
 import { CampaignParams, CampaignOutline } from '@/app/api/campaign/generate/route';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
-const SYSTEM_MESSAGE = {
-  role: 'system',
-  content: `You are a world-building Dungeon Master AI. Your task is to generate a rich fantasy campaign setting based on a few user preferences.
-
-Always respond with a valid JSON object containing the following keys:
-- worldName (string)
-- summary (string)
-- majorNPCs (string[])
-- hooks (string[])
-- towns (string[])
-- cities (string[])
-- villages (string[])
-- factions (string[])
-- geography (string[])
-- climates (string[])
-- religions (string[])
-- beliefSystems (string[])
-- magicLaws (string)
-- politicalStructures (string[])
-- majorConflicts (string[])
-- pointsOfInterest (string[])
-- campaignLog (string[]) ← start this as an empty list
-
-The campaignLog will be used throughout the game to track key discoveries, locations visited, and NPCs encountered. It should be referenced in future narrative responses to maintain continuity.
-
-Do not include any explanation or formatting outside of the JSON response.`
-};
-
 export async function generateCampaign(params: CampaignParams): Promise<CampaignOutline> {
-  const messages = [
-    SYSTEM_MESSAGE,
+  const messages: ChatCompletionMessageParam[] = [
+    {
+      role: 'system',
+      content: `You are an API assistant that generates D&D campaign settings for a web application.
+You must always return structured JSON using the defined function schema. Never return prose, markdown, or commentary.`
+    },
     {
       role: 'user',
-      content: `Create a fantasy campaign setting with these preferences:
+      content: `Create a fantasy campaign setting with the following preferences:
 
 Tone: ${params.tone}
 Theme: ${params.theme}
@@ -48,20 +25,74 @@ Track Carry Weight: ${params.carryWeightEnabled ? 'Yes' : 'No'}
 Track Rations: ${params.trackRations ? 'Yes' : 'No'}
 
 The user would like to include: ${params.includeElements || 'None'}
-The user would like to avoid: ${params.avoidElements || 'None'}
-
-Respond only with the required JSON structure.`
+The user would like to avoid: ${params.avoidElements || 'None'}`
     }
   ];
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4',
+    model: 'gpt-4-1106-preview',
     temperature: 0.8,
-    messages: [
-      { role: 'system', content: 'You are a world-building AI for D&D campaigns.' },
+    messages,
+    functions: [
+      {
+        name: 'generate_campaign',
+        description: 'Generate a full campaign outline in JSON format.',
+        parameters: {
+          type: 'object',
+          properties: {
+            worldName: { type: 'string' },
+            summary: { type: 'string' },
+            factions: { type: 'array', items: { type: 'string' } },
+            majorNPCs: { type: 'array', items: { type: 'string' } },
+            hooks: { type: 'array', items: { type: 'string' } },
+            towns: { type: 'array', items: { type: 'string' } },
+            cities: { type: 'array', items: { type: 'string' } },
+            villages: { type: 'array', items: { type: 'string' } },
+            geography: { type: 'array', items: { type: 'string' } },
+            climates: { type: 'array', items: { type: 'string' } },
+            religions: { type: 'array', items: { type: 'string' } },
+            beliefSystems: { type: 'array', items: { type: 'string' } },
+            magicLaws: { type: 'string' },
+            politicalStructures: { type: 'array', items: { type: 'string' } },
+            majorConflicts: { type: 'array', items: { type: 'string' } },
+            pointsOfInterest: { type: 'array', items: { type: 'string' } },
+            campaignLog: { type: 'array', items: { type: 'string' } }
+          },
+          required: [
+            'worldName',
+            'summary',
+            'factions',
+            'majorNPCs',
+            'hooks',
+            'towns',
+            'cities',
+            'villages',
+            'geography',
+            'climates',
+            'religions',
+            'beliefSystems',
+            'magicLaws',
+            'politicalStructures',
+            'majorConflicts',
+            'pointsOfInterest',
+            'campaignLog'
+          ]
+        }
+      }
     ],
+    function_call: { name: 'generate_campaign' }
   });
 
-  const choice = response.choices?.[0]?.message?.content;
-  return JSON.parse(choice || '{}') as CampaignOutline;
+  const fnCall = response.choices[0].message?.function_call;
+  if (!fnCall || !fnCall.arguments) {
+    console.error('❌ Missing function call or arguments in AI response:', response);
+    throw new Error('AI response missing structured JSON');
+  }
+
+  try {
+    return JSON.parse(fnCall.arguments) as CampaignOutline;
+  } catch (e) {
+    console.error('❌ JSON parse error:', e, fnCall.arguments);
+    throw new Error('AI returned invalid JSON format');
+  }
 }
