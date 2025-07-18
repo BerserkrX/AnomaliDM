@@ -6,9 +6,7 @@ import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import AiChatPanel from '@/components/ai/AiChatPanel';
 import io from 'socket.io-client';
-
 
 type PanelKey = 'Ch.' | 'Inv.' | 'Spell' | 'Roll' | 'Pl.' | 'AI';
 
@@ -17,6 +15,13 @@ export default function CampaignRoomPage() {
   const [user, setUser] = useState<any>(null);
   const [campaign, setCampaign] = useState<any>(null);
   const [activePanel, setActivePanel] = useState<PanelKey | null>(null);
+  const [aiMessages, setAiMessages] = useState<string[]>([]);
+  const [userInput, setUserInput] = useState('');
+  const socketRef = useRef<any>(null);
+
+  const togglePanel = (panel: PanelKey) => {
+    setActivePanel((prev) => (prev === panel ? null : panel));
+  };
 
   useEffect(() => {
     async function fetchInitialData() {
@@ -36,27 +41,8 @@ export default function CampaignRoomPage() {
     fetchInitialData();
   }, [id]);
 
-  const togglePanel = (panel: PanelKey) => {
-    setActivePanel((prev) => (prev === panel ? null : panel));
-  };
-
-  const [aiMessages, setAiMessages] = useState<string[]>([]);
-  const [userInput, setUserInput] = useState('');
-
-    const handleAiSend = async (msg: string) => {
-    const res = await fetch('/api/ai/respond', {
-        method: 'POST',
-        body: JSON.stringify({ campaignId: id, userInput: msg }),
-    });
-    const data = await res.json();
-    setAiMessages(prev => [...prev, data.response]);
-    };
-
-  const socketRef = useRef<any>(null);
-
   useEffect(() => {
     const socket = io(process.env.NEXT_PUBLIC_MCP_URL ?? 'http://localhost:4000');
-
     socketRef.current = socket;
 
     socket.on('connect', () => {
@@ -73,37 +59,63 @@ export default function CampaignRoomPage() {
     };
   }, []);
 
-
   const handleSendAiMessage = () => {
-    if (!userInput.trim()) return;
+    const trimmed = userInput.trim();
+    if (!trimmed || !user?.id || !id) return;
 
-    const message = userInput.trim();
-    setAiMessages((prev) => [...prev, `You: ${message}`]);
+    setAiMessages((prev) => [...prev, `You: ${trimmed}`]);
+
     socketRef.current?.emit('player-message', {
-      content: message,
-      playerId: user?.id,
+      content: trimmed,
+      playerId: user.id,
       campaignId: id,
     });
 
     setUserInput('');
   };
 
-  
-  // Move panelContent and return outside of handleSendAiMessage
   const panelContent: Record<PanelKey, React.ReactElement> = {
     'Ch.': <div>Character Sheet goes here.</div>,
     'Inv.': <div>Inventory content goes here.</div>,
     'Spell': <div>Spell list and spell slots go here.</div>,
     'Roll': <div>Dice roller goes here.</div>,
     'Pl.': <div>Players in session info goes here.</div>,
-  
     'AI': (
-      <>
-        <AiChatPanel campaignId={id as string} userId={user?.id} />
-      </>
+      <div className="flex flex-col h-[460px] w-full p-4 space-y-3 bg-zinc-900 text-white rounded shadow-lg overflow-hidden">
+        <div className="flex-1 overflow-y-auto pr-1 space-y-2">
+          {aiMessages.map((msg, index) => (
+            <div
+              key={index}
+              className={`p-2 rounded text-sm ${
+                msg.startsWith('You:')
+                  ? 'bg-zinc-700 text-green-200 self-end'
+                  : 'bg-zinc-800 text-yellow-100 self-start'
+              }`}
+            >
+              {msg}
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2 pt-2">
+          <input
+            type="text"
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSendAiMessage()}
+            className="flex-1 p-2 rounded border border-zinc-600 bg-zinc-800 text-white placeholder-gray-400"
+            placeholder="What do you do?"
+          />
+          <button
+            onClick={handleSendAiMessage}
+            className="px-4 py-2 bg-yellow-500 text-black font-semibold rounded hover:bg-yellow-400"
+          >
+            Send
+          </button>
+        </div>
+      </div>
     ),
   };
-  
+
   return (
     <div className="fixed top-16 left-0 w-screen h-[calc(100vh-4rem)] overflow-hidden bg-background">
       {/* Grid and Map */}
@@ -148,43 +160,42 @@ export default function CampaignRoomPage() {
       </div>
 
       {/* Animated Panel */}
-        <AnimatePresence>
+      <AnimatePresence>
         {activePanel && (
-            <motion.div
+          <motion.div
             key={activePanel}
             className={`absolute top-28 ${
-                activePanel === 'Pl.' || activePanel === 'AI' ? 'right-20' : 'left-20'
+              activePanel === 'Pl.' || activePanel === 'AI' ? 'right-20' : 'left-20'
             } bg-white bg-opacity-90 rounded shadow-lg p-4 w-[600px] h-[500px] p-6 z-50`}
             initial={{
-                opacity: 0,
-                scale: 0.8,
-                x: activePanel === 'Pl.' || activePanel === 'AI' ? 300 : -300,
+              opacity: 0,
+              scale: 0.8,
+              x: activePanel === 'Pl.' || activePanel === 'AI' ? 300 : -300,
             }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{
-                opacity: 0,
-                scale: 0.8,
-                x: activePanel === 'Pl.' || activePanel === 'AI' ? 300 : -300,
+              opacity: 0,
+              scale: 0.8,
+              x: activePanel === 'Pl.' || activePanel === 'AI' ? 300 : -300,
             }}
             transition={{ duration: 0.3 }}
-            >
+          >
             <div className="text-lg font-bold mb-2">{activePanel} Panel</div>
             <div className="flex justify-between items-center mb-2">
-                <h4 className="text-lg font-semibold">{activePanel}</h4>
-                <button
+              <h4 className="text-lg font-semibold">{activePanel}</h4>
+              <button
                 onClick={() => setActivePanel(null)}
                 className="text-sm text-muted-foreground hover:underline"
-                >
+              >
                 Close
-                </button>
+              </button>
             </div>
             <div className="text-sm text-muted-foreground max-h-96 overflow-y-auto">
-                {panelContent[activePanel]}
+              {panelContent[activePanel]}
             </div>
-            </motion.div>
+          </motion.div>
         )}
-        </AnimatePresence>
-
+      </AnimatePresence>
     </div>
   );
 }

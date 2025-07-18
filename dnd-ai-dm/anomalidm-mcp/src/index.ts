@@ -1,38 +1,33 @@
-// src/index.ts
 import express from 'express';
-import { createServer } from 'http';
+import http from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import { handlePlayerMessage } from './mcp';
 
-dotenv.config(); // Loads your .env variables
+dotenv.config();
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
+const server = http.createServer(app);
+const io = new Server(server, {
   cors: {
-    origin: '*', // Allow any origin for now — tighten later in production
+    origin: '*', // ✅ Temporarily allow all for dev — lock this down later
+    methods: ['GET', 'POST'],
   },
 });
 
-// Set up socket logic
 io.on('connection', (socket) => {
-  console.log(`🧠 MCP: Player connected: ${socket.id}`);
+  console.log('✅ New socket connection:', socket.id);
 
-  // When a player sends a message
   socket.on('player-message', async (data) => {
-    console.log('📩 player-message:', data);
-
     const response = await handlePlayerMessage(data);
     socket.emit('ai-response', { text: response });
   });
-
-  socket.on('disconnect', () => {
-    console.log(`❌ MCP: Player disconnected: ${socket.id}`);
-  });
 });
 
-const PORT = process.env.PORT || 4000;
-httpServer.listen(PORT, () => {
+const PORT = parseInt(process.env.PORT || '3000', 10);
+
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ MCP server running on port ${PORT}`);
 });
+
+
