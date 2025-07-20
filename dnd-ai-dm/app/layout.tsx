@@ -15,16 +15,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`
           ${inter.className}
-          flex flex-col h-screen m-0 p-0
+          flex flex-col min-h-screen m-0 p-0
           bg-background text-foreground
-          overflow-hidden
         `}
       >
-        {/* ── Fixed Top Bar ───────────────────────────── */}
         <NavBar />
 
-        {/* ── Main Content Area (all pages render here) ── */}
-        <main className="pt-16 flex-1 relative overflow-hidden">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
       </body>

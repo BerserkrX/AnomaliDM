@@ -22,6 +22,11 @@ io.on('connection', (socket) => {
     const response = await handlePlayerMessage(data);
     socket.emit('ai-response', { text: response });
   });
+
+  socket.on('player-roll', (data) => {
+    console.log(`🎲 Roll received from ${data.playerId}:`, data.results);
+    // TODO: use roll to trigger AI response
+  });
 });
 
 const PORT = parseInt(process.env.PORT || '3000', 10);

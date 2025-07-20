@@ -251,7 +251,7 @@ export default function CreateCharacterPage() {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white px-4 py-6">
-      <div className="max-w-2xl mx-auto bg-[#1f2937] p-6 rounded shadow space-y-6">
+      <div className="max-w-2xl mx-auto p-6 rounded shadow space-y-6">
         
         {steps[step]}
       </div>

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import io from 'socket.io-client';
+import DiceRoller3D from '@/components/ai/diceRoller3D';
 
 type PanelKey = 'Ch.' | 'Inv.' | 'Spell' | 'Roll' | 'Pl.' | 'AI';
 
@@ -78,7 +79,7 @@ export default function CampaignRoomPage() {
     'Ch.': <div>Character Sheet goes here.</div>,
     'Inv.': <div>Inventory content goes here.</div>,
     'Spell': <div>Spell list and spell slots go here.</div>,
-    'Roll': <div>Dice roller goes here.</div>,
+    'Roll': <DiceRoller3D socket={socketRef.current} playerId={user?.id} campaignId={typeof id === 'string' ? id : ''} />,
     'Pl.': <div>Players in session info goes here.</div>,
     'AI': (
       <div className="flex flex-col h-[460px] w-full p-4 space-y-3 bg-zinc-900 text-white rounded shadow-lg overflow-hidden">
